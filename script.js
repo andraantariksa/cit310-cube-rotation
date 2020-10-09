@@ -32,16 +32,24 @@ setLine(9, 5, 1);
 setLine(10, 6, 2);
 setLine(11, 7, 3);
 
+// Matriks
+// A * B != B * A
+
+// Matriks identitas
+// M * matriks identitas = M
 setMatrixRow(wt, 0, 1, 0, 0, 0);
 setMatrixRow(wt, 1, 0, 1, 0, 0);
 setMatrixRow(wt, 2, 0, 0, 1, 0);
 setMatrixRow(wt, 3, 0, 0, 0, 1);
 
+// Matriks paralel
+// Vt = matriks identitas * matriks proyeksi paralel
 setMatrixRow(vt, 0, 1, 0, 0, 0);
 setMatrixRow(vt, 1, 0, 1, 0, 0);
 setMatrixRow(vt, 2, 0, 0, 0, 0);
 setMatrixRow(vt, 3, 0, 0, 0, 1);
 
+// Scaling * translasi
 setMatrixRow(st, 0, 50, 0, 0, 0);
 setMatrixRow(st, 1, 0, -50, 0, 0);
 setMatrixRow(st, 2, 0, 0, 1, 0);
@@ -145,7 +153,7 @@ function clearCanvas() {
 
 function mainLoop() {
   const now = Date.now();
-
+  // Second = milisecond / 1000
   const deltaTime = (now - timePrevious) / 1000.0;
   timePrevious = now;
 
@@ -210,6 +218,7 @@ function mainLoop() {
     console.error("Unknown state")
   }
 
+  updateForeshorts();
   transform();
   updateForeshorts();
   drawCube();
