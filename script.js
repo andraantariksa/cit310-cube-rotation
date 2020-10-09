@@ -10,11 +10,11 @@ var wt = [];
 var vt = [];
 var st = [];
 var angle = 0;
-var theta = 45.0;
-var phi = 45.0;
-var rotationSpeed = 30.0;
+var thetaInput = 45.0;
+var phiInput = 45.0;
+var rotationSpeedInput = 30.0;
+var rotationAngleInput = 0.0;
 var state = "stop";
-var transformation_acc = [];
 var timePrevious = Date.now();
 
 setPoint(0, -1, -1, -1, 1);
@@ -39,11 +39,18 @@ setLine(9, 5, 1);
 setLine(10, 6, 2);
 setLine(11, 7, 3);
 
+// Matriks
+// A * B != B * A
+
+// Matriks identitas
+// M * matriks identitas = M
 setMatrixCol(wt, 0, 1, 0, 0, 0);
 setMatrixCol(wt, 1, 0, 1, 0, 0);
 setMatrixCol(wt, 2, 0, 0, 1, 0);
 setMatrixCol(wt, 3, 0, 0, 0, 1);
 
+// Matriks paralel
+// Vt = matriks identitas * matriks proyeksi paralel
 setMatrixCol(vt, 0, 1, 0, 0, 0);
 setMatrixCol(vt, 1, 0, 1, 0, 0);
 setMatrixCol(vt, 2, 0, 0, 0, 0);
@@ -54,9 +61,10 @@ setMatrixCol(vt, 3, 0, 0, 0, 1);
 // setMatrixCol(vt, 2, sin(phi), -cos(phi) * sin(theta), 0, 0);
 // setMatrixCol(vt, 3, 0       , 0                     , 0, 1);
 
-setMatrixCol(st, 0, 50, 0, 0, 0);
+// Scaling * translasi
+setMatrixCol(st, 0, -50, 0, 0, 0);
 setMatrixCol(st, 1, 0, -50, 0, 0);
-setMatrixCol(st, 2, 0, 0, 0, 0);
+setMatrixCol(st, 2, 0, 0, 1, 0);
 setMatrixCol(st, 3, 200, 200, 0, 1);
 
 mainLoop();
@@ -74,11 +82,11 @@ function setMatrixCol(m, idx, a, b, c, d) {
 }
 
 function sin(deg) {
-  return Math.sin(deg / 180.0 * Math.PI);
+  return Math.sin(deg * Math.PI / 180.0);
 }
 
 function cos(deg) {
-  return Math.cos(deg / 180.0 * Math.PI);
+  return Math.cos(deg* Math.PI / 180.0 );
 }
 
 // https://stackoverflow.com/questions/27205018/multiply-2-matrices-in-javascript
@@ -98,33 +106,10 @@ function matrixMultiply(a, b) {
   return m;
 }
 
-for (var i = 4; i < 12; i++) {
-  var p1 = vs[edge[i].p1];
-  var p2 = vs[edge[i].p2];
-  draw(p1[1], p1[0], p2[1], p2[0]);
-}
-
-for (var i = 0; i < 4; i++) {
-  var p1 = vs[edge[i].p1];
-  var p2 = vs[edge[i].p2];
-  canvasContext.strokeStyle = "red";
-  draw(p1[1], p1[0], p2[1], p2[0]);
-}
-
-document.addEventListener('keydown', logKey);
-
-function logKey(e) {
-  console.log(e.code);
-}
-
 function transform() {
-  // vw = matrixMultiply(v, wt);
-  // vr = matrixMultiply(vw, vt);
-  // vs = matrixMultiply(vr, st);
-  transformation_acc = wt;
-  transformation_acc = matrixMultiply(transformation_acc, vt);
-  transformation_acc = matrixMultiply(transformation_acc, st);
-  vs = matrixMultiply(v, transformation_acc);
+  vw = matrixMultiply(v, wt);
+  vr = matrixMultiply(vw, vt);
+  vs = matrixMultiply(vr, st);
 }
 
 function drawCube() {
@@ -132,14 +117,14 @@ function drawCube() {
     const p1 = vs[edge[i].p1];
     const p2 = vs[edge[i].p2];
     canvasContext.strokeStyle = "black";
-    draw(p1[1], p1[0], p2[1], p2[0]);
+    draw(p1[0], p1[1], p2[0], p2[1]);
   }
 
   for (var i = 0; i < 4; i++) {
     const p1 = vs[edge[i].p1];
     const p2 = vs[edge[i].p2];
     canvasContext.strokeStyle = "red";
-    draw(p1[1], p1[0], p2[1], p2[0]);
+    draw(p1[0], p1[1], p2[0], p2[1]);
   }
 }
 
@@ -179,82 +164,67 @@ function clearCanvas() {
 
 function mainLoop() {
   const now = Date.now();
+  // Second = milisecond / 1000
   const deltaTime = (now - timePrevious) / 1000.0;
   timePrevious = now;
 
   clearCanvas();
 
-  if (state === "rotate") {
-    const angleX = document.querySelector("#x-rotate").value;
-    const angleY = document.querySelector("#y-rotate").value;
-    const angleZ = document.querySelector("#z-rotate").value;
-
-    var tempMatrix = [];
-    // Rotate on X
+  if (state === "rotateX") {
     setMatrixCol(vt, 0, 1, 0, 0, 0);
-    setMatrixCol(vt, 1, 0, cos(angleX), 0, 0);
-    setMatrixCol(vt, 2, 0, -sin(angleX), 0, 0);
+    setMatrixCol(vt, 1, 0, cos(rotationAngleInput), 0, 0);
+    setMatrixCol(vt, 2, 0, -sin(rotationAngleInput), 0, 0);
     setMatrixCol(vt, 3, 0, 0, 0, 1);
-    // Rotate on Y
-    setMatrixCol(tempMatrix, 0, cos(angleY), 0, 0, 0);
-    setMatrixCol(tempMatrix, 1, 0, 1, 0, 0);
-    setMatrixCol(tempMatrix, 2, sin(angleY), 0, 0, 0);
-    setMatrixCol(tempMatrix, 3, 0, 0, 0, 1);
 
-    vt = matrixMultiply(vt, tempMatrix);
-    // Rotate on Z
-    setMatrixCol(tempMatrix, 0, cos(angleZ), sin(angleZ), 0, 0);
-    setMatrixCol(tempMatrix, 1, -sin(angleZ), cos(angleZ), 0, 0);
-    setMatrixCol(tempMatrix, 2, 0, 0, 0, 0);
-    setMatrixCol(tempMatrix, 3, 0, 0, 0, 1);
-
-    vt = matrixMultiply(vt, tempMatrix);
-
-    updateForeshorts();
     state = "stop";
-  } else if (state === "rotateX") {
-    console.log(deltaTime);
-    angle += rotationSpeed * deltaTime;
+  } else if (state === "rotateY") {
+    setMatrixCol(vt, 0, cos(rotationAngleInput), 0, 0, 0);
+    setMatrixCol(vt, 1, 0, 1, 0, 0);
+    setMatrixCol(vt, 2, sin(rotationAngleInput), 0, 0, 0);
+    setMatrixCol(vt, 3, 0, 0, 0, 1);
+
+    state = "stop";
+  } else if (state === "rotateZ") {
+    setMatrixCol(vt, 0, cos(rotationAngleInput), sin(rotationAngleInput), 0, 0);
+    setMatrixCol(vt, 1, -sin(rotationAngleInput), cos(rotationAngleInput), 0, 0);
+    setMatrixCol(vt, 2, 0, 0, 0, 0);
+    setMatrixCol(vt, 3, 0, 0, 0, 1);
+
+    state = "stop";
+  } else if (state === "animateRotateX") {
+    angle += rotationSpeedInput * deltaTime;
 
     setMatrixCol(vt, 0, 1, 0, 0, 0);
     setMatrixCol(vt, 1, 0, cos(angle), 0, 0);
     setMatrixCol(vt, 2, 0, -sin(angle), 0, 0);
     setMatrixCol(vt, 3, 0, 0, 0, 1);
-
-    updateForeshorts();
-  } else if (state === "rotateY") {
-    angle += rotationSpeed * deltaTime;
+  } else if (state === "animateRotateY") {
+    angle += rotationSpeedInput * deltaTime;
 
     setMatrixCol(vt, 0, cos(angle), 0, 0, 0);
     setMatrixCol(vt, 1, 0, 1, 0, 0);
     setMatrixCol(vt, 2, sin(angle), 0, 0, 0);
     setMatrixCol(vt, 3, 0, 0, 0, 1);
-
-    updateForeshorts();
-  } else if (state === "rotateZ") {
-    angle += rotationSpeed * deltaTime;
+  } else if (state === "animateRotateZ") {
+    angle += rotationSpeedInput * deltaTime;
 
     setMatrixCol(vt, 0, cos(angle), sin(angle), 0, 0);
     setMatrixCol(vt, 1, -sin(angle), cos(angle), 0, 0);
     setMatrixCol(vt, 2, 0, 0, 0, 0);
     setMatrixCol(vt, 3, 0, 0, 0, 1);
-
-    updateForeshorts();
   } else if (state === "reset") {
     setMatrixCol(vt, 0, 1, 0, 0, 0);
     setMatrixCol(vt, 1, 0, 1, 0, 0);
     setMatrixCol(vt, 2, 0, 0, 0, 0);
     setMatrixCol(vt, 3, 0, 0, 0, 1);
 
-    updateForeshorts();
     state = "stop";
   } else if (state === "axonometric") {
-    setMatrixCol(vt, 0, cos(phi), sin(phi) * sin(theta), 0, 0);
-    setMatrixCol(vt, 1, 0, cos(theta), 0, 0);
-    setMatrixCol(vt, 2, sin(phi), -cos(phi) * sin(theta), 0, 0);
+    setMatrixCol(vt, 0, cos(phiInput), sin(phiInput) * sin(thetaInput), 0, 0);
+    setMatrixCol(vt, 1, 0, cos(thetaInput), 0, 0);
+    setMatrixCol(vt, 2, sin(phiInput), -cos(phiInput) * sin(thetaInput), 0, 0);
     setMatrixCol(vt, 3, 0, 0, 0, 1);
 
-    updateForeshorts();
     state = "stop";
   } else if (state === "stop") {
     // Do nothing
@@ -262,6 +232,7 @@ function mainLoop() {
     console.error("Unknown state")
   }
 
+  updateForeshorts();
   transform();
   drawCube();
 
@@ -269,12 +240,12 @@ function mainLoop() {
 }
 
 function updateRotationSpeed() {
-  rotationSpeed = parseFloat(document.querySelector("#rotation-speed").value);
+  rotationSpeedInput = parseFloat(document.querySelector("#rotation-speed").value);
 }
 
 function updatePhiTheta() {
-  phi = parseFloat(document.querySelector("#phi").value);
-  theta = parseFloat(document.querySelector("#theta").value);
+  phiInput = parseFloat(document.querySelector("#phi").value);
+  thetaInput = parseFloat(document.querySelector("#theta").value);
 }
 
 function cubeAxonometric() {
@@ -284,24 +255,39 @@ function cubeAxonometric() {
 
 function cubeAnimateRotateX() {
   updateRotationSpeed();
-  state = "rotateX";
+  state = "animateRotateX";
 }
 
 function cubeAnimateRotateY() {
   updateRotationSpeed();
-  state = "rotateY";
+  state = "animateRotateY";
 }
 function cubeAnimateRotateZ() {
   updateRotationSpeed();
-  state = "rotateZ";
+  state = "animateRotateZ";
 }
 
 function cubeStop() {
   state = "stop";
 }
 
-function cubeRotate() {
-  state = "rotate";
+function updateRotationAngleInput() {
+  rotationAngleInput = document.querySelector("#rotate-angle").value;
+}
+
+function cubeRotateX() {
+  updateRotationAngleInput();
+  state = "rotateX";
+}
+
+function cubeRotateY() {
+  updateRotationAngleInput();
+  state = "rotateY";
+}
+
+function cubeRotateZ() {
+  updateRotationAngleInput();
+  state = "rotateZ";
 }
 
 function cubeReset() {

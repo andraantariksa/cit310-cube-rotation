@@ -26,28 +26,33 @@
 <body>
 	<div align="center">
 		<div class="mv-1">
+			<button class="click" onclick="cubeReset();">Reset</button>
+		</div>
+		<div class="mv-1">
+			(Angle) : <input id="rotate-angle" type="number" value="0.0" />
+			<button class="click" onclick="cubeRotateX();">Rotate X</button>
+			<button class="click" onclick="cubeRotateY();">Rotate Y</button>
+			<button class="click" onclick="cubeRotateZ();">Rotate Z</button>
+		</div>
+		<div class="mv-1">
+			(φ) : <input id="phi" type="number" value="45.0" />
+			(θ) : <input id="theta" type="number" value="45.0" />
+			<button class="click" onclick="cubeAxonometric();">Axonometric</button>
+		</div>
+		<div class="mv-1">
+			(Degree per second) : <input id="rotation-speed" value="30.0" type="number" />
 			<button class="click" onclick="cubeAnimateRotateX();">Animate rotate X axis</button>
 			<button class="click" onclick="cubeAnimateRotateY();">Animate rotate Y axis</button>
 			<button class="click" onclick="cubeAnimateRotateZ();">Animate rotate Z axis</button>
-			<button class="click" onclick="cubeReset();">Reset</button>
 			<button class="click" onclick="cubeStop();">Stop</button>
-			<button class="click" onclick="cubeAxonometric();">Axonometric</button>
-			<button class="click" onclick="cubeRotate();">Rotate by angle</button>
 		</div>
 		<div class="mv-1">
-			(x) : <input id="x-rotate" type="number" value="0.0" /> (y) : <input id="y-rotate" type="number" value="0.0" /> (z) : <input id="z-rotate" type="number" value="0.0" />
-		</div>
-		<div class="mv-1">
-			(φ) : <input id="phi" type="number" value="45.0" /> (θ) : <input id="theta" type="number" value="45.0" />
-		</div>
-		<div class="mv-1">
-			(Angular speed) : <input id="rotation-speed" value="30.0" type="number" />
-		</div>
-		<div class="mv-1">
-			(fx) : <input id="fx" value="1.0" readonly/> (fy) : <input id="fy" type="number" value="1.0" readonly/>  (fz) : <input id="fz" type="number" value="1.0" readonly/>
+			(fx) : <input id="fx" value="1.0" readonly/>
+			(fy) : <input id="fy" type="number" value="1.0" readonly/>
+			(fz) : <input id="fz" type="number" value="1.0" readonly/>
 		</div>
 	</div>
-	<canvas id="canvas" width="400" height="400"></canvas>
+	<canvas id="canvas" width="400" height="400" style="background-color: yellow;"></canvas>
 	<script type="text/javascript" src="script.js">	</script>
 </body>
 </html>
