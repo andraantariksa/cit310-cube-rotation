@@ -12,9 +12,10 @@ var st = [];
 var angle = 0;
 var theta = 45.0;
 var phi = 45.0;
-var rotationSpeed = 1.0;
+var rotationSpeed = 30.0;
 var state = "stop";
 var transformation_acc = [];
+var timePrevious = Date.now();
 
 setPoint(0, -1, -1, -1, 1);
 setPoint(1, -1, 1, -1, 1);
@@ -177,6 +178,10 @@ function clearCanvas() {
 }
 
 function mainLoop() {
+  const now = Date.now();
+  const deltaTime = (now - timePrevious) / 1000.0;
+  timePrevious = now;
+
   clearCanvas();
 
   if (state === "rotate") {
@@ -208,7 +213,8 @@ function mainLoop() {
     updateForeshorts();
     state = "stop";
   } else if (state === "rotateX") {
-    angle += rotationSpeed;
+    console.log(deltaTime);
+    angle += rotationSpeed * deltaTime;
 
     setMatrixCol(vt, 0, 1, 0, 0, 0);
     setMatrixCol(vt, 1, 0, cos(angle), 0, 0);
@@ -217,7 +223,7 @@ function mainLoop() {
 
     updateForeshorts();
   } else if (state === "rotateY") {
-    angle += rotationSpeed;
+    angle += rotationSpeed * deltaTime;
 
     setMatrixCol(vt, 0, cos(angle), 0, 0, 0);
     setMatrixCol(vt, 1, 0, 1, 0, 0);
@@ -226,7 +232,7 @@ function mainLoop() {
 
     updateForeshorts();
   } else if (state === "rotateZ") {
-    angle += rotationSpeed;
+    angle += rotationSpeed * deltaTime;
 
     setMatrixCol(vt, 0, cos(angle), sin(angle), 0, 0);
     setMatrixCol(vt, 1, -sin(angle), cos(angle), 0, 0);
@@ -276,16 +282,16 @@ function cubeAxonometric() {
   state = "axonometric";
 }
 
-function cubeRotateX() {
+function cubeAnimateRotateX() {
   updateRotationSpeed();
   state = "rotateX";
 }
 
-function cubeRotateY() {
+function cubeAnimateRotateY() {
   updateRotationSpeed();
   state = "rotateY";
 }
-function cubeRotateZ() {
+function cubeAnimateRotateZ() {
   updateRotationSpeed();
   state = "rotateZ";
 }
