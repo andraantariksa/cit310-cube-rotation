@@ -5,6 +5,7 @@ var v = [];
 var vw = [];
 var vr = [];
 var vs = [];
+var wtMultiplyByVt = [];
 var edge = [];
 var wt = [];
 var vt = [];
@@ -18,6 +19,15 @@ var state = "stop";
 var timePrevious = Date.now();
 
 cubeReset();
+
+setPoint(0, -1, -1, -1, 1);
+setPoint(1, -1, 1, -1, 1);
+setPoint(2, 1, -1, -1, 1);
+setPoint(3, 1, 1, -1, 1);
+setPoint(4, -1, -1, 1, 1);
+setPoint(5, -1, 1, 1, 1);
+setPoint(6, 1, -1, 1, 1);
+setPoint(7, 1, 1, 1, 1);
 
 setLine(0, 4, 6);
 setLine(1, 6, 7);
@@ -95,9 +105,8 @@ function matrixMultiply(a, b) {
 }
 
 function transform() {
-  vw = matrixMultiply(v, wt);
-  v = vw;
-  vr = matrixMultiply(vw, vt);
+  wtMultiplyByVt = matrixMultiply(wt, vt);
+  vr = matrixMultiply(v, wtMultiplyByVt);
   vs = matrixMultiply(vr, st);
 }
 
@@ -121,9 +130,9 @@ function getForeshorts() {
   const foreshorts = [];
   for (var i = 0; i < 3; i++) {
     foreshorts.push(Math.sqrt(
-      vt[i][0] * vt[i][0] +
-      vt[i][1] * vt[i][1] +
-      vt[i][2] * vt[i][2]
+      wtMultiplyByVt[i][0] * wtMultiplyByVt[i][0] +
+      wtMultiplyByVt[i][1] * wtMultiplyByVt[i][1] +
+      wtMultiplyByVt[i][2] * wtMultiplyByVt[i][2]
     ));
   }
   return foreshorts;
@@ -134,10 +143,11 @@ function updateForeshorts() {
   const fy = document.querySelector("#fy");
   const fz = document.querySelector("#fz");
 
+  // Karena ada floating point error, maka nilai desimal di bawah 1 * 10^(-5) dipotong/truncate
   const newForeshorts = getForeshorts();
-  fx.value = newForeshorts[0];
-  fy.value = newForeshorts[1];
-  fz.value = newForeshorts[2];
+  fx.value = newForeshorts[0].toFixed(5);
+  fy.value = newForeshorts[1].toFixed(5);
+  fz.value = newForeshorts[2].toFixed(5);
 }
 
 function draw(x1, y1, x2, y2) {
@@ -159,66 +169,67 @@ function mainLoop() {
 
   clearCanvas();
 
+  var wtNew = [];
   if (state === "rotateX") {
-    setMatrixRow(wt, 0, 1, 0, 0, 0);
-    setMatrixRow(wt, 1, 0, cos(rotationAngleInput), sin(rotationAngleInput), 0);
-    setMatrixRow(wt, 2, 0, -sin(rotationAngleInput), cos(rotationAngleInput), 0);
-    setMatrixRow(wt, 3, 0, 0, 0, 1);
+    setMatrixRow(wtNew, 0, 1, 0, 0, 0);
+    setMatrixRow(wtNew, 1, 0, cos(rotationAngleInput), sin(rotationAngleInput), 0);
+    setMatrixRow(wtNew, 2, 0, -sin(rotationAngleInput), cos(rotationAngleInput), 0);
+    setMatrixRow(wtNew, 3, 0, 0, 0, 1);
 
     state = "stop";
   } else if (state === "rotateY") {
-    setMatrixRow(wt, 0, cos(rotationAngleInput), 0, -sin(rotationAngleInput), 0);
-    setMatrixRow(wt, 1, 0, 1, 0, 0);
-    setMatrixRow(wt, 2, sin(rotationAngleInput), 0, cos(rotationAngleInput), 0);
-    setMatrixRow(wt, 3, 0, 0, 0, 1);
+    setMatrixRow(wtNew, 0, cos(rotationAngleInput), 0, -sin(rotationAngleInput), 0);
+    setMatrixRow(wtNew, 1, 0, 1, 0, 0);
+    setMatrixRow(wtNew, 2, sin(rotationAngleInput), 0, cos(rotationAngleInput), 0);
+    setMatrixRow(wtNew, 3, 0, 0, 0, 1);
 
     state = "stop";
   } else if (state === "rotateZ") {
-    setMatrixRow(wt, 0, cos(rotationAngleInput), sin(rotationAngleInput), 0, 0);
-    setMatrixRow(wt, 1, -sin(rotationAngleInput), cos(rotationAngleInput), 0, 0);
-    setMatrixRow(wt, 2, 0, 0, 0, 0);
-    setMatrixRow(wt, 3, 0, 0, 0, 1);
+    setMatrixRow(wtNew, 0, cos(rotationAngleInput), sin(rotationAngleInput), 0, 0);
+    setMatrixRow(wtNew, 1, -sin(rotationAngleInput), cos(rotationAngleInput), 0, 0);
+    setMatrixRow(wtNew, 2, 0, 0, 0, 0);
+    setMatrixRow(wtNew, 3, 0, 0, 0, 1);
 
     state = "stop";
   } else if (state === "animateRotateX") {
     angle = rotationSpeedInput * deltaTime;
 
-    setMatrixRow(wt, 0, 1, 0, 0, 0);
-    setMatrixRow(wt, 1, 0, cos(angle), sin(angle), 0);
-    setMatrixRow(wt, 2, 0, -sin(angle), cos(angle), 0);
-    setMatrixRow(wt, 3, 0, 0, 0, 1);
+    setMatrixRow(wtNew, 0, 1, 0, 0, 0);
+    setMatrixRow(wtNew, 1, 0, cos(angle), sin(angle), 0);
+    setMatrixRow(wtNew, 2, 0, -sin(angle), cos(angle), 0);
+    setMatrixRow(wtNew, 3, 0, 0, 0, 1);
   } else if (state === "animateRotateY") {
     angle = rotationSpeedInput * deltaTime;
 
-    setMatrixRow(wt, 0, cos(angle), 0, -sin(angle), 0);
-    setMatrixRow(wt, 1, 0, 1, 0, 0);
-    setMatrixRow(wt, 2, sin(angle), 0, cos(angle), 0);
-    setMatrixRow(wt, 3, 0, 0, 0, 1);
+    setMatrixRow(wtNew, 0, cos(angle), 0, -sin(angle), 0);
+    setMatrixRow(wtNew, 1, 0, 1, 0, 0);
+    setMatrixRow(wtNew, 2, sin(angle), 0, cos(angle), 0);
+    setMatrixRow(wtNew, 3, 0, 0, 0, 1);
   } else if (state === "animateRotateZ") {
     angle = rotationSpeedInput * deltaTime;
 
-    setMatrixRow(wt, 0, cos(angle), sin(angle), 0, 0);
-    setMatrixRow(wt, 1, -sin(angle), cos(angle), 0, 0);
-    setMatrixRow(wt, 2, 0, 0, 1, 0);
-    setMatrixRow(wt, 3, 0, 0, 0, 1);
+    setMatrixRow(wtNew, 0, cos(angle), sin(angle), 0, 0);
+    setMatrixRow(wtNew, 1, -sin(angle), cos(angle), 0, 0);
+    setMatrixRow(wtNew, 2, 0, 0, 1, 0);
+    setMatrixRow(wtNew, 3, 0, 0, 0, 1);
   } else if (state === "axonometric") {
-    setMatrixRow(wt, 0, cos(phiInput), sin(phiInput) * sin(thetaInput), -sin(phiInput) * cos(thetaInput), 0);
-    setMatrixRow(wt, 1, 0, cos(thetaInput), sin(thetaInput), 0);
-    setMatrixRow(wt, 2, sin(phiInput), -cos(phiInput) * sin(thetaInput), cos(phiInput) * cos(thetaInput), 0);
-    setMatrixRow(wt, 3, 0, 0, 0, 1);
+    setMatrixRow(wtNew, 0, cos(phiInput), sin(phiInput) * sin(thetaInput), -sin(phiInput) * cos(thetaInput), 0);
+    setMatrixRow(wtNew, 1, 0, cos(thetaInput), sin(thetaInput), 0);
+    setMatrixRow(wtNew, 2, sin(phiInput), -cos(phiInput) * sin(thetaInput), cos(phiInput) * cos(thetaInput), 0);
+    setMatrixRow(wtNew, 3, 0, 0, 0, 1);
 
     state = "stop";
   } else if (state === "stop") {
     // Do nothing
-    setMatrixRow(wt, 0, 1, 0, 0, 0);
-    setMatrixRow(wt, 1, 0, 1, 0, 0);
-    setMatrixRow(wt, 2, 0, 0, 1, 0);
-    setMatrixRow(wt, 3, 0, 0, 0, 1);
   } else {
     console.error("Unknown state")
   }
 
-  updateForeshorts();
+  // If wtNew is modified using setMatrixRow
+  if (wtNew.length > 0) {
+    wt = matrixMultiply(wt, wtNew);
+  }
+
   transform();
   updateForeshorts();
   drawCube();
@@ -278,14 +289,10 @@ function cubeRotateZ() {
 }
 
 function cubeReset() {
-  setPoint(0, -1, -1, -1, 1);
-  setPoint(1, -1, 1, -1, 1);
-  setPoint(2, 1, -1, -1, 1);
-  setPoint(3, 1, 1, -1, 1);
-  setPoint(4, -1, -1, 1, 1);
-  setPoint(5, -1, 1, 1, 1);
-  setPoint(6, 1, -1, 1, 1);
-  setPoint(7, 1, 1, 1, 1);
+  setMatrixRow(wt, 0, 1, 0, 0, 0);
+  setMatrixRow(wt, 1, 0, 1, 0, 0);
+  setMatrixRow(wt, 2, 0, 0, 1, 0);
+  setMatrixRow(wt, 3, 0, 0, 0, 1);
   
   state = "stop";
 }
